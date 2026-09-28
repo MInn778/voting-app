@@ -27,6 +27,71 @@ export async function listPolls(): Promise<PollSummary[]> {
   }));
 }
 
+export type Poll = {
+  id: string;
+  question: string;
+  options: { id: string; label: string }[];
+};
+
+export type PollResult = {
+  id: string;
+  question: string;
+  totalVotes: number;
+  options: { id: string; label: string; votes: number; percent: number }[];
+};
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function findPollRows(id: string) {
+  if (!UUID.test(id)) return [];
+  return sql`
+    select p.id, p.question, o.id as option_id, o.label, o.vote_count
+    from polls p
+    join options o on o.poll_id = p.id
+    where p.id = ${id}
+    order by o.position
+  `;
+}
+
+export async function getPoll(id: string): Promise<Poll | null> {
+  const rows = await findPollRows(id);
+  if (rows.length === 0) return null;
+  return {
+    id: rows[0].id,
+    question: rows[0].question,
+    options: rows.map((row) => ({ id: row.option_id, label: row.label })),
+  };
+}
+
+export async function getPollResult(id: string): Promise<PollResult | null> {
+  const rows = await findPollRows(id);
+  if (rows.length === 0) return null;
+  const totalVotes = rows.reduce((sum, row) => sum + row.vote_count, 0);
+  return {
+    id: rows[0].id,
+    question: rows[0].question,
+    totalVotes,
+    options: rows.map((row) => ({
+      id: row.option_id,
+      label: row.label,
+      votes: row.vote_count,
+      percent: totalVotes === 0 ? 0 : Math.round((row.vote_count / totalVotes) * 100),
+    })),
+  };
+}
+
+// Returns false when the Option does not belong to this Poll. The increment happens in
+// the database, so concurrent Votes never overwrite each other.
+export async function recordVote(pollId: string, optionId: string): Promise<boolean> {
+  if (!UUID.test(pollId) || !UUID.test(optionId)) return false;
+  const rows = await sql`
+    update options set vote_count = vote_count + 1
+    where id = ${optionId} and poll_id = ${pollId}
+    returning id
+  `;
+  return rows.length === 1;
+}
+
 // One statement, so the Poll and its Options are saved together or not at all.
 export async function createPoll({ question, options }: PollInput): Promise<string> {
   const rows = await sql`

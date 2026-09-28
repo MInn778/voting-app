@@ -24,9 +24,12 @@ export default async function OperatorPage() {
       ) : (
         <ul className="flex flex-col gap-2">
           {polls.map((poll) => (
-            <li key={poll.id} className="flex justify-between rounded border p-4">
-              <span>{poll.question}</span>
+            <li key={poll.id} className="flex items-center gap-4 rounded border p-4">
+              <span className="flex-1">{poll.question}</span>
               <span className="text-gray-500">{poll.totalVotes}표</span>
+              <Link href={`/polls/${poll.id}/results`} className="underline">
+                결과 보기
+              </Link>
             </li>
           ))}
         </ul>
