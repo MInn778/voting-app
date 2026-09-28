@@ -40,10 +40,11 @@ test("로그인은 1일 동안 유지된다", async ({ page, context }) => {
   expect(secondsLeft).toBeLessThanOrEqual(ONE_DAY_SECONDS);
 });
 
-test("로그아웃하면 다시 운영자 화면에 들어갈 수 없다", async ({ page }) => {
+test("로그아웃하면 첫 화면(투표 목록)으로 가고, 다시 운영자 화면에 들어갈 수 없다", async ({ page }) => {
   await logIn(page, PASSWORD);
   await page.getByRole("button", { name: "로그아웃" }).click();
-  await expect(page).toHaveURL(/\/login/);
+  await expect(page).toHaveURL("/");
+  await expect(page.getByRole("heading", { name: "진행 중인 투표" })).toBeVisible();
   await page.goto("/operator");
   await expect(page).toHaveURL(/\/login/);
 });
