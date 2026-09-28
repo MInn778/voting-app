@@ -92,6 +92,13 @@ export async function recordVote(pollId: string, optionId: string): Promise<bool
   return rows.length === 1;
 }
 
+// Options (and their vote counts) go with the Poll via "on delete cascade".
+export async function deletePoll(id: string): Promise<boolean> {
+  if (!UUID.test(id)) return false;
+  const rows = await sql`delete from polls where id = ${id} returning id`;
+  return rows.length === 1;
+}
+
 // One statement, so the Poll and its Options are saved together or not at all.
 export async function createPoll({ question, options }: PollInput): Promise<string> {
   const rows = await sql`

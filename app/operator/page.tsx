@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listPolls } from "@/lib/polls";
+import { DeletePollButton } from "./delete-poll-button";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default async function OperatorPage() {
               <Link href={`/polls/${poll.id}/results`} className="underline">
                 결과 보기
               </Link>
+              <DeletePollButton pollId={poll.id} />
             </li>
           ))}
         </ul>
