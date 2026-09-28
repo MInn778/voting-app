@@ -1,13 +1,7 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { PASSWORD, logIn } from "./helpers";
 
-const PASSWORD = process.env.OPERATOR_PASSWORD!;
 const ONE_DAY_SECONDS = 24 * 60 * 60;
-
-async function logIn(page: Page, password: string) {
-  await page.goto("/login");
-  await page.getByLabel("비밀번호").fill(password);
-  await page.getByRole("button", { name: "로그인" }).click();
-}
 
 test("운영자가 올바른 비밀번호로 로그인하면 운영자 화면으로 간다", async ({ page }) => {
   await logIn(page, PASSWORD);
@@ -18,7 +12,7 @@ test("운영자가 올바른 비밀번호로 로그인하면 운영자 화면으
 test("틀린 비밀번호로는 로그인되지 않고 오류가 보인다", async ({ page }) => {
   await logIn(page, PASSWORD + "-wrong");
   await expect(page).toHaveURL(/\/login/);
-  await expect(page.getByRole("alert")).toHaveText("비밀번호가 올바르지 않습니다.");
+  await expect(page.getByRole("alert").filter({ hasText: "비밀번호가 올바르지 않습니다." })).toBeVisible();
   await page.goto("/operator");
   await expect(page).toHaveURL(/\/login/);
 });

@@ -1,7 +1,14 @@
-export default function OperatorPage() {
+import Link from "next/link";
+import { listPolls } from "@/lib/polls";
+
+export const dynamic = "force-dynamic";
+
+export default async function OperatorPage() {
+  const polls = await listPolls();
+
   return (
-    <main className="mx-auto max-w-2xl p-8">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto w-full max-w-2xl p-8">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">운영자</h1>
         <form action="/api/logout" method="post">
           <button type="submit" className="rounded border px-3 py-1">
@@ -9,6 +16,21 @@ export default function OperatorPage() {
           </button>
         </form>
       </div>
+      <Link href="/operator/new" className="mb-6 inline-block rounded bg-black px-3 py-2 text-white">
+        새 투표 만들기
+      </Link>
+      {polls.length === 0 ? (
+        <p className="text-gray-500">아직 만든 투표가 없습니다.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {polls.map((poll) => (
+            <li key={poll.id} className="flex justify-between rounded border p-4">
+              <span>{poll.question}</span>
+              <span className="text-gray-500">{poll.totalVotes}표</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }
