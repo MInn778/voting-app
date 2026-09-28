@@ -145,3 +145,25 @@ test("없는 투표의 주소로 들어가면 안내가 보인다", async ({ pag
     await expect(page.getByText("투표를 찾을 수 없습니다")).toBeVisible();
   }
 });
+
+test("투표자는 결과 화면에서 자기가 고른 선택지를 알아볼 수 있다", async ({ page, browser, request }) => {
+  const pollId = await createPoll(request, uniqueQuestion("내 선택"), ["가", "나", "다"]);
+  await vote(page, pollId, "나");
+
+  await expect(resultRow(page, "나")).toContainText("✓ 내 선택");
+  await expect(resultRow(page, "가")).not.toContainText("내 선택");
+  await expect(resultRow(page, "다")).not.toContainText("내 선택");
+
+  // Still marked after the Result refreshes with someone else's Vote.
+  await voteAsNewVoter(browser, pollId, "가");
+  await expect(page.getByText("총 2표")).toBeVisible({ timeout: 15_000 });
+  await expect(resultRow(page, "나")).toContainText("✓ 내 선택");
+});
+
+test("투표하지 않은 운영자의 결과 화면에는 내 선택 표시가 없다", async ({ page, request }) => {
+  const pollId = await createPoll(request, uniqueQuestion("운영자 내 선택"), ["가", "나"]);
+  await logIn(page);
+  await page.goto(`/polls/${pollId}/results`);
+  await expect(page.getByText("총 0표")).toBeVisible();
+  await expect(page.getByText("✓ 내 선택")).toHaveCount(0);
+});

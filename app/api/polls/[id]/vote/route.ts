@@ -16,6 +16,6 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/polls/[
   }
 
   const response = redirectTo(`/polls/${id}/results`);
-  response.cookies.set(votedCookieName(id), "1", votedCookieOptions);
+  response.cookies.set(votedCookieName(id), optionId, votedCookieOptions);
   return response;
 }

@@ -7,7 +7,7 @@ import type { PollResult } from "@/lib/polls";
 const POLL_INTERVAL_MS = 5_000;
 
 // Starts from the server-rendered Result, then re-fetches it every 5s while mounted.
-export function LiveResult({ initial }: { initial: PollResult }) {
+export function LiveResult({ initial, myOptionId }: { initial: PollResult; myOptionId?: string }) {
   const [result, setResult] = useState(initial);
   const [gone, setGone] = useState(false);
 
@@ -42,8 +42,16 @@ export function LiveResult({ initial }: { initial: PollResult }) {
       <h1 className="mb-6 text-2xl font-bold">{result.question}</h1>
       <ul className="mb-4 flex flex-col gap-2">
         {result.options.map((option) => (
-          <li key={option.id} className="flex justify-between rounded border p-4">
-            <span>{option.label}</span>
+          <li
+            key={option.id}
+            className={`flex justify-between rounded border p-4 ${
+              option.id === myOptionId ? "border-green-600 bg-green-50 font-semibold" : ""
+            }`}
+          >
+            <span>
+              {option.label}
+              {option.id === myOptionId && <span className="ml-2 text-green-700">✓ 내 선택</span>}
+            </span>
             <span>
               {option.votes}표 · {option.percent}%
             </span>
