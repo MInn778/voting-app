@@ -8,7 +8,12 @@ export default async function Home() {
 
   return (
     <main className="mx-auto w-full max-w-2xl p-8">
-      <h1 className="mb-6 text-2xl font-bold">진행 중인 투표</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">진행 중인 투표</h1>
+        <Link href="/operator" className="text-sm text-gray-500 underline">
+          운영자 로그인
+        </Link>
+      </div>
       {polls.length === 0 ? (
         <p className="text-gray-500">진행 중인 투표가 없습니다.</p>
       ) : (

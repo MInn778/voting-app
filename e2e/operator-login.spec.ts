@@ -9,6 +9,12 @@ test("운영자가 올바른 비밀번호로 로그인하면 운영자 화면으
   await expect(page.getByRole("heading", { name: "운영자" })).toBeVisible();
 });
 
+test("첫 화면의 운영자 로그인 링크로 로그인 화면에 갈 수 있다", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { name: "운영자 로그인" }).click();
+  await expect(page).toHaveURL(/\/login/);
+});
+
 test("틀린 비밀번호로는 로그인되지 않고 오류가 보인다", async ({ page }) => {
   await logIn(page, PASSWORD + "-wrong");
   await expect(page).toHaveURL(/\/login/);

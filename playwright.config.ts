@@ -4,7 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 // Load .env.local the same way `npm run dev` does, so tests hit the same Neon DB.
 loadEnvConfig(process.cwd());
 
-const PORT = 3100;
+// Same port as `npm run dev`: Next allows only one dev server per project, so reuse it if running.
+const PORT = 3000;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -17,9 +18,9 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `npm run dev -- --port ${PORT}`,
+    command: "npm run dev",
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120_000,
   },
 });
