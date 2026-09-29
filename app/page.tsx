@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { closingLabel } from "@/lib/closing-time";
+import { MAKER_LABEL } from "@/lib/maker";
 import { listPolls } from "@/lib/polls";
 
 export const dynamic = "force-dynamic";
@@ -21,9 +22,12 @@ export default async function Home() {
         <ul className="flex flex-col gap-2">
           {polls.map((poll) => (
             <li key={poll.id} className="flex items-center rounded border hover:bg-gray-50">
-              <Link href={`/polls/${poll.id}`} className="flex-1 p-4">
-                {poll.question}
-              </Link>
+              <div className="flex-1 p-4">
+                <Link href={`/polls/${poll.id}`} className="block">
+                  {poll.question}
+                </Link>
+                <span className="text-xs text-gray-500">{MAKER_LABEL}</span>
+              </div>
               <span className={`pr-4 text-sm ${poll.closed ? "text-red-600" : "text-gray-500"}`}>
                 {closingLabel(poll)}
               </span>

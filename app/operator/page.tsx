@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { closingLabel } from "@/lib/closing-time";
 import { isOperator } from "@/lib/operator-session";
+import { MAKER_LABEL } from "@/lib/maker";
 import { listPolls } from "@/lib/polls";
 import { ConfirmActionButton } from "./confirm-action-button";
 
@@ -31,7 +32,10 @@ export default async function OperatorPage() {
         <ul className="flex flex-col gap-2">
           {polls.map((poll) => (
             <li key={poll.id} className="flex items-center gap-4 rounded border p-4">
-              <span className="flex-1">{poll.question}</span>
+              <span className="flex-1">
+                {poll.question}
+                <span className="block text-xs text-gray-500">{MAKER_LABEL}</span>
+              </span>
               <span className={`text-sm ${poll.closed ? "text-red-600" : "text-gray-500"}`}>
                 {closingLabel(poll)}
               </span>

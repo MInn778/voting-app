@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { MAKER_LABEL } from "@/lib/maker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <div className="flex-1">{children}</div>
-        <footer className="py-6 text-center text-sm text-gray-500">제작: 김민혁</footer>
+        <footer className="py-6 text-center text-sm text-gray-500">{MAKER_LABEL}</footer>
       </body>
     </html>
   );
