@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { closingLabel } from "@/lib/closing-time";
 import { isOperator } from "@/lib/operator-session";
 import { listPolls } from "@/lib/polls";
 import { DeletePollButton } from "./delete-poll-button";
@@ -31,6 +32,9 @@ export default async function OperatorPage() {
           {polls.map((poll) => (
             <li key={poll.id} className="flex items-center gap-4 rounded border p-4">
               <span className="flex-1">{poll.question}</span>
+              <span className={`text-sm ${poll.closed ? "text-red-600" : "text-gray-500"}`}>
+                {closingLabel(poll)}
+              </span>
               <span className="text-gray-500">{poll.totalVotes}표</span>
               <Link href={`/polls/${poll.id}/results`} className="underline">
                 결과 보기

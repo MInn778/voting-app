@@ -89,7 +89,11 @@ test.describe("로그인한 운영자", () => {
     expect((await post({ question: uniqueQuestion("API"), options: ["가", ""] })).status()).toBe(400);
     expect((await post({ question: uniqueQuestion("API"), options: "가,나" })).status()).toBe(400);
 
-    const ok = await post({ question: uniqueQuestion("API 성공"), options: ["가", "나"] });
+    const ok = await post({
+      question: uniqueQuestion("API 성공"),
+      options: ["가", "나"],
+      closesAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    });
     expect(ok.status()).toBe(201);
   });
 });

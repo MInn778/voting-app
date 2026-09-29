@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { closingLabel } from "@/lib/closing-time";
 import { listPolls } from "@/lib/polls";
 
 export const dynamic = "force-dynamic";
@@ -19,10 +20,13 @@ export default async function Home() {
       ) : (
         <ul className="flex flex-col gap-2">
           {polls.map((poll) => (
-            <li key={poll.id}>
-              <Link href={`/polls/${poll.id}`} className="block rounded border p-4 hover:bg-gray-50">
+            <li key={poll.id} className="flex items-center rounded border hover:bg-gray-50">
+              <Link href={`/polls/${poll.id}`} className="flex-1 p-4">
                 {poll.question}
               </Link>
+              <span className={`pr-4 text-sm ${poll.closed ? "text-red-600" : "text-gray-500"}`}>
+                {closingLabel(poll)}
+              </span>
             </li>
           ))}
         </ul>

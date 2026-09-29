@@ -4,7 +4,10 @@ import type { PollInput } from "./poll-rules";
 // The only place in the app that talks to the database.
 const sql = neon(process.env.DATABASE_URL!);
 
-export type PollSummary = {
+// Closed-ness is decided by the database clock (closes_at <= now()), never the app server's.
+type ClosingState = { closesAt: string; closed: boolean };
+
+export type PollSummary = ClosingState & {
   id: string;
   question: string;
   createdAt: Date;
@@ -13,7 +16,8 @@ export type PollSummary = {
 
 export async function listPolls(): Promise<PollSummary[]> {
   const rows = await sql`
-    select p.id, p.question, p.created_at, coalesce(sum(o.vote_count), 0)::int as total_votes
+    select p.id, p.question, p.created_at, p.closes_at, p.closes_at <= now() as closed,
+      coalesce(sum(o.vote_count), 0)::int as total_votes
     from polls p
     left join options o on o.poll_id = p.id
     group by p.id
@@ -23,17 +27,19 @@ export async function listPolls(): Promise<PollSummary[]> {
     id: row.id,
     question: row.question,
     createdAt: new Date(row.created_at),
+    closesAt: new Date(row.closes_at).toISOString(),
+    closed: row.closed,
     totalVotes: row.total_votes,
   }));
 }
 
-export type Poll = {
+export type Poll = ClosingState & {
   id: string;
   question: string;
   options: { id: string; label: string }[];
 };
 
-export type PollResult = {
+export type PollResult = ClosingState & {
   id: string;
   question: string;
   totalVotes: number;
@@ -45,12 +51,17 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 async function findPollRows(id: string) {
   if (!UUID.test(id)) return [];
   return sql`
-    select p.id, p.question, o.id as option_id, o.label, o.vote_count
+    select p.id, p.question, p.closes_at, p.closes_at <= now() as closed,
+      o.id as option_id, o.label, o.vote_count
     from polls p
     join options o on o.poll_id = p.id
     where p.id = ${id}
     order by o.position
   `;
+}
+
+function closingState(row: Record<string, unknown>): ClosingState {
+  return { closesAt: new Date(row.closes_at as string).toISOString(), closed: row.closed as boolean };
 }
 
 export async function getPoll(id: string): Promise<Poll | null> {
@@ -59,6 +70,7 @@ export async function getPoll(id: string): Promise<Poll | null> {
   return {
     id: rows[0].id,
     question: rows[0].question,
+    ...closingState(rows[0]),
     options: rows.map((row) => ({ id: row.option_id, label: row.label })),
   };
 }
@@ -70,6 +82,7 @@ export async function getPollResult(id: string): Promise<PollResult | null> {
   return {
     id: rows[0].id,
     question: rows[0].question,
+    ...closingState(rows[0]),
     totalVotes,
     options: rows.map((row) => ({
       id: row.option_id,
@@ -80,14 +93,17 @@ export async function getPollResult(id: string): Promise<PollResult | null> {
   };
 }
 
-// Returns false when the Option does not belong to this Poll. The increment happens in
-// the database, so concurrent Votes never overwrite each other.
+// Returns false when the Option does not belong to this Poll or the Poll is Closed. Both
+// checks and the increment are one statement, so a Vote can't slip in after closing and
+// concurrent Votes never overwrite each other.
 export async function recordVote(pollId: string, optionId: string): Promise<boolean> {
   if (!UUID.test(pollId) || !UUID.test(optionId)) return false;
   const rows = await sql`
-    update options set vote_count = vote_count + 1
-    where id = ${optionId} and poll_id = ${pollId}
-    returning id
+    update options o set vote_count = o.vote_count + 1
+    from polls p
+    where o.id = ${optionId} and o.poll_id = ${pollId}
+      and p.id = o.poll_id and p.closes_at > now()
+    returning o.id
   `;
   return rows.length === 1;
 }
@@ -100,10 +116,10 @@ export async function deletePoll(id: string): Promise<boolean> {
 }
 
 // One statement, so the Poll and its Options are saved together or not at all.
-export async function createPoll({ question, options }: PollInput): Promise<string> {
+export async function createPoll({ question, options, closesAt }: PollInput): Promise<string> {
   const rows = await sql`
     with new_poll as (
-      insert into polls (question) values (${question}) returning id
+      insert into polls (question, closes_at) values (${question}, ${closesAt}) returning id
     ), new_options as (
       insert into options (poll_id, label, position)
       select new_poll.id, o.label, o.position

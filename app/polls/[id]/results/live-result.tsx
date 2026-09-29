@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { closingLabel } from "@/lib/closing-time";
 import type { PollResult } from "@/lib/polls";
 
 const POLL_INTERVAL_MS = 5_000;
@@ -39,7 +40,8 @@ export function LiveResult({ initial, myOptionId }: { initial: PollResult; myOpt
 
   return (
     <main className="mx-auto w-full max-w-2xl p-8">
-      <h1 className="mb-6 text-2xl font-bold">{result.question}</h1>
+      <h1 className="mb-2 text-2xl font-bold">{result.question}</h1>
+      <p className="mb-6 text-sm text-gray-500">{closingLabel(result)}</p>
       <ul className="mb-4 flex flex-col gap-2">
         {result.options.map((option) => {
           const mine = option.id === myOptionId;

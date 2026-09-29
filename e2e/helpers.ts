@@ -14,10 +14,18 @@ export async function logIn(page: Page, password = PASSWORD) {
   await page.getByRole("button", { name: "로그인" }).click();
 }
 
+export const inFromNow = (ms: number) => new Date(Date.now() + ms).toISOString();
+export const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 // Creates a Poll through the public API as a logged-in Operator; returns its id.
-export async function createPoll(request: APIRequestContext, question: string, options: string[]) {
+export async function createPoll(
+  request: APIRequestContext,
+  question: string,
+  options: string[],
+  closesAt = inFromNow(ONE_DAY_MS),
+) {
   await request.post("/api/login", { form: { password: PASSWORD }, maxRedirects: 0 });
-  const response = await request.post("/api/polls", { data: { question, options } });
+  const response = await request.post("/api/polls", { data: { question, options, closesAt } });
   if (response.status() !== 201) throw new Error(`createPoll failed: ${response.status()}`);
   return (await response.json()).id as string;
 }

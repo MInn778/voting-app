@@ -7,13 +7,17 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/polls/[
   const { id } = await ctx.params;
   const redirectTo = (path: string) => NextResponse.redirect(new URL(path, request.url), 303);
 
-  if (!(await getPoll(id))) return redirectTo(`/polls/${id}`); // renders "not found"
-  if (await hasVoted(id)) return redirectTo(`/polls/${id}/results`); // stale form resubmit
+  const poll = await getPoll(id);
+  if (!poll) return redirectTo(`/polls/${id}`); // renders "not found"
+  // Closed, or a stale form resubmit: no Vote, just show the Result.
+  if (poll.closed || (await hasVoted(id))) return redirectTo(`/polls/${id}/results`);
 
   const optionId = String((await request.formData()).get("optionId") ?? "");
   if (!(await recordVote(id, optionId))) {
-    // The Poll may have been deleted between the check above and the vote.
-    if (!(await getPoll(id))) return redirectTo(`/polls/${id}`);
+    // The Poll may have been deleted or closed between the check above and the vote.
+    const now = await getPoll(id);
+    if (!now) return redirectTo(`/polls/${id}`);
+    if (now.closed) return redirectTo(`/polls/${id}/results`);
     return Response.json({ error: "이 투표의 선택지가 아닙니다." }, { status: 400 });
   }
 

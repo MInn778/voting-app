@@ -2,7 +2,8 @@
 create table if not exists polls (
   id uuid primary key default gen_random_uuid(),
   question text not null,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  closes_at timestamptz not null default now() + interval '7 days'
 );
 
 create table if not exists options (
