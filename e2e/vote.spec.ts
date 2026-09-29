@@ -1,25 +1,8 @@
-import { expect, test, type Browser, type Page } from "@playwright/test";
-import { createPoll, logIn } from "./helpers";
-import { TEST_PREFIX, deleteTestPolls } from "./test-db";
+import { expect, test, type Page } from "@playwright/test";
+import { createPoll, logIn, uniqueQuestion, vote, voteAsNewVoter } from "./helpers";
+import { deleteTestPolls } from "./test-db";
 
 test.afterAll(deleteTestPolls);
-
-function uniqueQuestion(label: string) {
-  return `${TEST_PREFIX} ${label} ${Date.now()}`;
-}
-
-async function vote(page: Page, pollId: string, option: string) {
-  await page.goto(`/polls/${pollId}`);
-  await page.getByLabel(option, { exact: true }).check();
-  await page.getByRole("button", { name: "투표하기" }).click();
-}
-
-// A fresh browser context has no cookies: a different anonymous Voter.
-async function voteAsNewVoter(browser: Browser, pollId: string, option: string) {
-  const context = await browser.newContext();
-  await vote(await context.newPage(), pollId, option);
-  await context.close();
-}
 
 function resultRow(page: Page, label: string) {
   return page.getByRole("listitem").filter({ hasText: label });
@@ -48,8 +31,8 @@ test("투표자는 목록에서 투표를 골라 선택지 하나에 투표하�
   await expect(page.getByRole("link", { name: "목록으로" })).toHaveAttribute("href", "/");
 });
 
-test("여러 투표자의 표가 득표수와 비율로 집계된다", async ({ browser, request }) => {
-  const pollId = await createPoll(request, uniqueQuestion("집계"), ["가", "나", "다"]);
+test("여러 투표자의 투표 행위가 결과의 득표수와 비율에 반영된다", async ({ browser, request }) => {
+  const pollId = await createPoll(request, uniqueQuestion("득표 반영"), ["가", "나", "다"]);
   await voteAsNewVoter(browser, pollId, "가");
   await voteAsNewVoter(browser, pollId, "가");
 

@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { isOperator } from "@/lib/operator-session";
 import { listPolls } from "@/lib/polls";
 import { DeletePollButton } from "./delete-poll-button";
 
 export const dynamic = "force-dynamic";
 
 export default async function OperatorPage() {
+  // The proxy already redirects; re-check here so it is not the only line of defense.
+  if (!(await isOperator())) redirect("/login");
   const polls = await listPolls();
 
   return (

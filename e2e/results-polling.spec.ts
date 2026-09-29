@@ -1,27 +1,10 @@
-import { expect, test, type Browser, type Page } from "@playwright/test";
-import { createPoll } from "./helpers";
-import { TEST_PREFIX, deletePollDirectly, deleteTestPolls } from "./test-db";
+import { expect, test, type Page } from "@playwright/test";
+import { createPoll, uniqueQuestion, vote, voteAsNewVoter } from "./helpers";
+import { deletePollDirectly, deleteTestPolls } from "./test-db";
 
 test.afterAll(deleteTestPolls);
 
 const POLL_INTERVAL_MS = 5_000;
-
-function uniqueQuestion(label: string) {
-  return `${TEST_PREFIX} ${label} ${Date.now()}`;
-}
-
-async function vote(page: Page, pollId: string, option: string) {
-  await page.goto(`/polls/${pollId}`);
-  await page.getByLabel(option, { exact: true }).check();
-  await page.getByRole("button", { name: "투표하기" }).click();
-  await expect(page).toHaveURL(`/polls/${pollId}/results`);
-}
-
-async function voteAsNewVoter(browser: Browser, pollId: string, option: string) {
-  const context = await browser.newContext();
-  await vote(await context.newPage(), pollId, option);
-  await context.close();
-}
 
 // Marks the loaded document; the mark survives only if the page is never reloaded.
 async function markDocument(page: Page) {

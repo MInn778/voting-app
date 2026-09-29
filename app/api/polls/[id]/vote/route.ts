@@ -12,6 +12,8 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/polls/[
 
   const optionId = String((await request.formData()).get("optionId") ?? "");
   if (!(await recordVote(id, optionId))) {
+    // The Poll may have been deleted between the check above and the vote.
+    if (!(await getPoll(id))) return redirectTo(`/polls/${id}`);
     return Response.json({ error: "이 투표의 선택지가 아닙니다." }, { status: 400 });
   }
 

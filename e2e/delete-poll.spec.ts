@@ -1,12 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
-import { createPoll, logIn } from "./helpers";
-import { TEST_PREFIX, deleteTestPolls } from "./test-db";
+import { createPoll, logIn, uniqueQuestion } from "./helpers";
+import { deleteTestPolls } from "./test-db";
 
 test.afterAll(deleteTestPolls);
-
-function uniqueQuestion(label: string) {
-  return `${TEST_PREFIX} ${label} ${Date.now()}`;
-}
 
 function operatorRow(page: Page, question: string) {
   return page.getByRole("listitem").filter({ hasText: question });
@@ -27,7 +23,7 @@ test("삭제 확인에서 취소하면 투표가 그대로 남는다", async ({ 
   await expect(operatorRow(page, question)).toBeVisible();
 });
 
-test("표를 받은 투표를 삭제하면 두 목록에서 사라지고 주소로도 찾을 수 없다", async ({ page, browser, request }) => {
+test("득표가 있는 투표를 삭제하면 두 목록에서 사라지고 주소로도 찾을 수 없다", async ({ page, browser, request }) => {
   const question = uniqueQuestion("삭제");
   const pollId = await createPoll(request, question, ["가", "나"]);
 

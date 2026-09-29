@@ -1,13 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
-import { logIn } from "./helpers";
+import { logIn, uniqueQuestion } from "./helpers";
 import { listPolls } from "@/lib/polls";
 import { TEST_PREFIX, deleteTestPolls } from "./test-db";
 
 test.afterAll(deleteTestPolls);
-
-function uniqueQuestion(label: string) {
-  return `${TEST_PREFIX} ${label} ${Date.now()}`;
-}
 
 async function fillPoll(page: Page, question: string, options: string[]) {
   await page.goto("/operator/new");
