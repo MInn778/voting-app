@@ -108,6 +108,16 @@ export async function recordVote(pollId: string, optionId: string): Promise<bool
   return rows.length === 1;
 }
 
+// Closing now means moving the Closing Time to now; an already Closed Poll keeps its time.
+// Returns the resulting Closing Time, or null when there is no such Poll.
+export async function closePoll(id: string): Promise<string | null> {
+  if (!UUID.test(id)) return null;
+  const rows = await sql`
+    update polls set closes_at = least(closes_at, now()) where id = ${id} returning closes_at
+  `;
+  return rows.length === 1 ? new Date(rows[0].closes_at).toISOString() : null;
+}
+
 // Options (and their vote counts) go with the Poll via "on delete cascade".
 export async function deletePoll(id: string): Promise<boolean> {
   if (!UUID.test(id)) return false;

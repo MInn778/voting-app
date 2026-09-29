@@ -14,6 +14,7 @@ export default defineConfig({
   workers: 1,
   // `next dev` compiles a route on first visit, which can outlast the default 5s.
   expect: { timeout: 15_000 },
+  timeout: 60_000,
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",

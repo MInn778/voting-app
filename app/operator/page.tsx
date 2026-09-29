@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { closingLabel } from "@/lib/closing-time";
 import { isOperator } from "@/lib/operator-session";
 import { listPolls } from "@/lib/polls";
-import { DeletePollButton } from "./delete-poll-button";
+import { ConfirmActionButton } from "./confirm-action-button";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +39,22 @@ export default async function OperatorPage() {
               <Link href={`/polls/${poll.id}/results`} className="underline">
                 결과 보기
               </Link>
-              <DeletePollButton pollId={poll.id} />
+              {!poll.closed && (
+                <ConfirmActionButton
+                  label="지금 마감"
+                  confirmMessage="지금 마감할까요?"
+                  url={`/api/polls/${poll.id}/close`}
+                  method="POST"
+                  className="border-gray-600"
+                />
+              )}
+              <ConfirmActionButton
+                label="삭제"
+                confirmMessage="정말 삭제할까요?"
+                url={`/api/polls/${poll.id}`}
+                method="DELETE"
+                className="border-red-600 text-red-600"
+              />
             </li>
           ))}
         </ul>
