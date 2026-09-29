@@ -41,22 +41,33 @@ export function LiveResult({ initial, myOptionId }: { initial: PollResult; myOpt
     <main className="mx-auto w-full max-w-2xl p-8">
       <h1 className="mb-6 text-2xl font-bold">{result.question}</h1>
       <ul className="mb-4 flex flex-col gap-2">
-        {result.options.map((option) => (
-          <li
-            key={option.id}
-            className={`flex justify-between rounded border p-4 ${
-              option.id === myOptionId ? "border-green-600 bg-green-50 font-semibold" : ""
-            }`}
-          >
-            <span>
-              {option.label}
-              {option.id === myOptionId && <span className="ml-2 text-green-700">✓ 내 선택</span>}
-            </span>
-            <span>
-              {option.votes}표 · {option.percent}%
-            </span>
-          </li>
-        ))}
+        {result.options.map((option) => {
+          const mine = option.id === myOptionId;
+          return (
+            <li
+              key={option.id}
+              className={`rounded border p-4 ${mine ? "border-green-600 bg-green-50 font-semibold" : ""}`}
+            >
+              <div className="flex justify-between">
+                <span>
+                  {option.label}
+                  {mine && <span className="ml-2 text-green-700">✓ 내 선택</span>}
+                </span>
+                <span>
+                  {option.votes}표 · {option.percent}%
+                </span>
+              </div>
+              {/* The numbers above already say this; the bar is visual only. */}
+              <div aria-hidden="true" className="mt-2 h-3 overflow-hidden rounded bg-gray-200">
+                <div
+                  data-bar
+                  className={`h-full rounded transition-all duration-500 ${mine ? "bg-green-600" : "bg-blue-500"}`}
+                  style={{ width: `${option.percent}%` }}
+                />
+              </div>
+            </li>
+          );
+        })}
       </ul>
       <p className="mb-6 font-semibold">총 {result.totalVotes}표</p>
       <Link href="/" className="underline">
